@@ -1,6 +1,8 @@
-const fetch = require('node-fetch');
-const { Octokit } = require('@octokit/rest');
-const { paginateRest } = require('@octokit/plugin-paginate-rest');
+// const fetch = require('node-fetch');
+// const { Octokit } = require('@octokit/rest');
+// const { paginateRest } = require('@octokit/plugin-paginate-rest');
+import { Octokit } from '@octokit/rest';
+import { paginateRest } from '@octokit/plugin-paginate-rest';
 
 const token = process.env.GITHUB_TOKEN;
 const prNumber = process.env.PR_NUMBER;
