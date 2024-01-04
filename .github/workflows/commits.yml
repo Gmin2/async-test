@@ -1,0 +1,81 @@
+name: Merge with Co-Authors
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
+      - synchronize
+      - opened
+      - edited
+      - ready_for_review
+      - reopened
+      - unlocked
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install node-fetch @octokit/core @octokit/plugin-paginate-rest
+
+      - name: Merge PR with Co-Authors
+        run: |
+          const fetch = require('node-fetch');
+          const { Octokit } = require('@octokit/rest');
+          const { paginateRest } = require('@octokit/plugin-paginate-rest');
+
+          const token = process.env.GITHUB_TOKEN;
+          const prNumber = process.env.PR_NUMBER;
+          const prTitle = process.env.PR_TITLE;
+          const repostory = process.env.GITHUB_REPOSITORY;
+
+          async function getCoAuthors() {
+            try {
+              const commitsResponse = await octokit.paginate("GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",{
+              owner: "asyncapi",
+              repo: repository,
+              pull_number: prNumber,
+              per_page: 100,
+           });
+
+             const authors = commitsResponse.
+              map((data: any) => ({
+               name: data.commit.author.name,
+               email: data.commit.author.email,
+               login: data.commit.author.login,
+            }))
+            .filter((author: any) => author.login !== 'PR_sender_login')
+            .reduce((uniqueAuthors: any, author: any) => {
+              if (!uniqueAuthors.some((a: any) => a.email === author.email)) {
+                uniqueAuthors.push(author);
+               }
+        
+              return uniqueAuthors;
+            }, [])
+            .map((author: any) => `Co-authored-by: ${author.name} <${author.email}>`)
+            .join('\n');
+            return authors;
+          }
+          catch (error) {
+            console.error('Error fetching commits:', error);
+            return null;
+          }
+        
+          - name: Automerge PR
+          uses: pascalgn/automerge-action@22948e0bc22f0aa673800da838595a3e7347e584 #v0.15.6 https://github.com/pascalgn/automerge-action/releases/tag/v0.15.6
+          env:  
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
