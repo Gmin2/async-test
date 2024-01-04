@@ -96,6 +96,3 @@ automergePR();
 // })();
 
 // curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" "${{github.event.pull_request._links.commits.href}}?per_page=100"
-
-
-
