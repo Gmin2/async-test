@@ -29,7 +29,6 @@ jobs:
 
       - name: Merge PR with Co-Authors
         run: |
-          const fetch = require('node-fetch');
           const { Octokit } = require('@octokit/rest');
           const { paginateRest } = require('@octokit/plugin-paginate-rest');
 
